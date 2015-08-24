@@ -8,6 +8,7 @@ type RoomStat struct {
 	Lv1Name     string
 	Lv2Name     string
 	Lv3Name     string
+	Tier        int
 	Category    string
 	Ability     string
 	MinDwellers int
@@ -36,13 +37,13 @@ func (rs RoomStat) Name(level int) string {
 }
 
 func (rs RoomStat) Capacity(level, size int) int {
-	switch rs.Lv1Name {
-	case "Living Quarters":
+	switch {
+	case rs.Lv1Name == "Living Quarters":
 		baseCap := rs.Storage + 2*(level-1)
 		return baseCap*size + 2*(size-1)
-	case "Storage Room":
+	case rs.Lv1Name == "Storage Room":
 		return rs.Storage*size + 5*(level-1)*size
-	case "Diner":
+	case rs.Category == "Production":
 		baseCap := rs.Storage + rs.Storage/2*(level-1)
 		return baseCap * size
 	}
@@ -54,8 +55,10 @@ func (rs RoomStat) Production(level, size int) int {
 	if rs.Yield == 0 {
 		return 0
 	}
-	baseCap := rs.Yield + 2*(level-1)
-	return baseCap*size + 2*(size-1)
+	kicker := 1 + rs.Tier
+
+	baseCap := rs.Yield + kicker*(level-1)
+	return baseCap*size + kicker*(size-1)
 }
 
 // UpgradeCost computes the cost to upgrade a room of size provided
@@ -126,17 +129,19 @@ var Rooms = map[Room]RoomStat{
 		CostLv3:  750,
 		Yield:    8,
 		Storage:  50,
+		Tier:     1,
 	},
 	5: {
 		Lv1Name:  "Garden",
 		Lv2Name:  "Greenhouse",
 		Lv3Name:  "Super Garden",
 		Category: "Production",
-		CostBase: 3000,
-		CostAdd:  25,
+		CostBase: 2100,
+		CostAdd:  300,
 		CostLv2:  3000,
 		CostLv3:  9000,
 		Yield:    10,
-		Storage:  50,
+		Storage:  60,
+		Tier:     2,
 	},
 }
