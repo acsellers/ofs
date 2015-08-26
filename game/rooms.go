@@ -83,10 +83,13 @@ func (rs RoomStat) UpgradeCost(level, size int) int {
 }
 
 var Rooms = map[Room]RoomStat{
-	0: {
+	-1: {
 		Lv1Name: "Vault Door",
 		CostLv2: 500,
 		CostLv3: 2000,
+	},
+	0: {
+		Lv1Name: "Dirt",
 	},
 	1: {
 		Lv1Name:  "Elevator",
