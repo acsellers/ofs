@@ -3,6 +3,8 @@ package game
 import (
 	"fmt"
 	"log"
+	"strings"
+	"unicode"
 
 	"github.com/pietv/astar"
 )
@@ -25,6 +27,30 @@ type RoomInstance struct {
 	UpgradeLevel int
 	Row, Col     int
 	Connections  []RoomConnection
+}
+
+func (ri RoomInstance) Sprite() string {
+	r := Rooms[ri.Type]
+	var name string
+	switch ri.UpgradeLevel {
+	case 1:
+		name = r.Lv1Name
+	case 2:
+		name = r.Lv2Name
+	case 3:
+		name = r.Lv3Name
+	}
+	name = fmt.Sprintf("%sx%d", name, ri.Size)
+
+	return strings.ToLower(
+		strings.TrimFunc(
+			name,
+			func(r rune) bool {
+				return !(unicode.IsLetter(r) || unicode.IsDigit(r))
+			},
+		),
+	)
+
 }
 
 type RoomConnection struct {
