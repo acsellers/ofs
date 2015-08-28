@@ -18,6 +18,7 @@ type RoomStat struct {
 	CostLv3     int
 	Storage     int
 	Yield       int
+	Bonus       int // production bonus
 }
 
 func (rs RoomStat) Name(level int) string {
@@ -37,15 +38,16 @@ func (rs RoomStat) Name(level int) string {
 }
 
 func (rs RoomStat) Capacity(level, size int) int {
-	switch {
-	case rs.Lv1Name == "Living Quarters":
+	switch rs.Category {
+	case "People":
 		baseCap := rs.Storage + 2*(level-1)
 		return baseCap*size + 2*(size-1)
-	case rs.Lv1Name == "Storage Room":
+	case "Storage":
 		return rs.Storage*size + 5*(level-1)*size
-	case rs.Category == "Production":
-		baseCap := rs.Storage + rs.Storage/2*(level-1)
+	case "Food", "Power":
+		baseCap := rs.Storage + (level-1)*rs.Storage/2
 		return baseCap * size
+
 	}
 	fmt.Println("Missing room:", rs.Lv1Name)
 	return 0
@@ -58,6 +60,9 @@ func (rs RoomStat) Production(level, size int) int {
 	kicker := 1 + rs.Tier
 
 	baseCap := rs.Yield + kicker*(level-1)
+	if rs.Bonus > 0 {
+		baseCap += (level - 1) ^ rs.Bonus
+	}
 	return baseCap*size + kicker*(size-1)
 }
 
@@ -98,10 +103,10 @@ var Rooms = map[Room]RoomStat{
 	},
 	// storage
 	2: {
-		Lv1Name:  "Living Quarters",
-		Lv2Name:  "Residence",
-		Lv3Name:  "Barracks",
-		Category: "Capacity",
+		Lv1Name:  "PeopleU1",
+		Lv2Name:  "PeopleU2",
+		Lv3Name:  "PeopleU3",
+		Category: "People",
 		CostBase: 100,
 		CostAdd:  25,
 		CostLv2:  250,
@@ -109,10 +114,10 @@ var Rooms = map[Room]RoomStat{
 		Storage:  8,
 	},
 	3: {
-		Lv1Name:     "Storage Room",
-		Lv2Name:     "Depot",
-		Lv3Name:     "Warehouse",
-		Category:    "Capacity",
+		Lv1Name:     "StorageU1",
+		Lv2Name:     "StorageU2",
+		Lv3Name:     "StorageU3",
+		Category:    "Storage",
 		MinDwellers: 12,
 		CostBase:    100,
 		CostAdd:     25,
@@ -122,10 +127,10 @@ var Rooms = map[Room]RoomStat{
 	},
 	// food production
 	4: {
-		Lv1Name:  "Diner",
-		Lv2Name:  "Restaurant",
-		Lv3Name:  "Cafeteria",
-		Category: "Production",
+		Lv1Name:  "Food1U1",
+		Lv2Name:  "Food1U2",
+		Lv3Name:  "Food1U3",
+		Category: "Food",
 		CostBase: 100,
 		CostAdd:  25,
 		CostLv2:  250,
@@ -135,16 +140,45 @@ var Rooms = map[Room]RoomStat{
 		Tier:     1,
 	},
 	5: {
-		Lv1Name:  "Garden",
-		Lv2Name:  "Greenhouse",
-		Lv3Name:  "Super Garden",
-		Category: "Production",
-		CostBase: 2100,
+		Lv1Name:  "Food2U1",
+		Lv2Name:  "Food2U2",
+		Lv3Name:  "Food2U3",
+		Category: "Food",
+		CostBase: 1200,
 		CostAdd:  300,
 		CostLv2:  3000,
 		CostLv3:  9000,
 		Yield:    10,
 		Storage:  60,
 		Tier:     2,
+	},
+	// power production
+	6: {
+		Lv1Name:  "Power1U1",
+		Lv2Name:  "Power1U2",
+		Lv3Name:  "Power1U3",
+		Category: "Power",
+		CostBase: 100,
+		CostAdd:  25,
+		CostLv2:  250,
+		CostLv3:  750,
+		Yield:    10,
+		Storage:  75,
+		Tier:     1,
+		Bonus:    4,
+	},
+	7: {
+		Lv1Name:  "Power2U1",
+		Lv2Name:  "Power2U2",
+		Lv3Name:  "Power2U3",
+		Category: "Power",
+		CostBase: 1200,
+		CostAdd:  300,
+		CostLv2:  3000,
+		CostLv3:  9000,
+		Yield:    16,
+		Storage:  200,
+		Tier:     2,
+		Bonus:    4,
 	},
 }
