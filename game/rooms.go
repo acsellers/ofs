@@ -1,7 +1,5 @@
 package game
 
-import "fmt"
-
 type Room int
 
 type RoomStat struct {
@@ -16,9 +14,8 @@ type RoomStat struct {
 	CostAdd     int
 	CostLv2     int
 	CostLv3     int
-	Storage     int
-	Yield       int
-	Bonus       int // production bonus
+	Storage     [3][3]int
+	Yield       [3][3]int
 }
 
 func (rs RoomStat) Name(level int) string {
@@ -37,33 +34,66 @@ func (rs RoomStat) Name(level int) string {
 	return rs.Lv1Name
 }
 
-func (rs RoomStat) Capacity(level, size int) int {
+type Storage int
+
+const (
+	People Storage = iota
+	Items
+	Food
+	Water
+	Power
+	Health
+	Radiation
+)
+
+func (rs RoomStat) Stores() []Storage {
 	switch rs.Category {
 	case "People":
-		baseCap := rs.Storage + 2*(level-1)
-		return baseCap*size + 2*(size-1)
+		return []Storage{People}
 	case "Storage":
-		return rs.Storage*size + 5*(level-1)*size
-	case "Food", "Power":
-		baseCap := rs.Storage + (level-1)*rs.Storage/2
-		return baseCap * size
-
+		return []Storage{
+			Items,
+			Health,
+			Radiation,
+		}
+	case "Food":
+		return []Storage{Food}
+	case "Water":
+		return []Storage{Water}
+	case "Power":
+		return []Storage{Power}
+	case "Health":
+		return []Storage{Health}
+	case "Radiation":
+		return []Storage{Radiation}
 	}
-	fmt.Println("Missing room:", rs.Lv1Name)
-	return 0
+	return []Storage{}
+}
+
+func (rs RoomStat) Produces() []Storage {
+	switch rs.Category {
+	case "Food":
+		return []Storage{Food}
+	case "Water":
+		return []Storage{Water}
+	case "Food+Water":
+		return []Storage{Food, Water}
+	case "Power":
+		return []Storage{Power}
+	case "Health":
+		return []Storage{Health}
+	case "Radiation":
+		return []Storage{Radiation}
+	}
+	return []Storage{}
+}
+
+func (rs RoomStat) Capacity(level, size int) int {
+	return rs.Storage[level-1][size-1]
 }
 
 func (rs RoomStat) Production(level, size int) int {
-	if rs.Yield == 0 {
-		return 0
-	}
-	kicker := 1 + rs.Tier
-
-	baseCap := rs.Yield + kicker*(level-1)
-	if rs.Bonus > 0 {
-		baseCap += (level - 1) ^ rs.Bonus
-	}
-	return baseCap*size + kicker*(size-1)
+	return rs.Yield[level-1][size-1]
 }
 
 // UpgradeCost computes the cost to upgrade a room of size provided
@@ -111,7 +141,11 @@ var Rooms = map[Room]RoomStat{
 		CostAdd:  25,
 		CostLv2:  250,
 		CostLv3:  750,
-		Storage:  8,
+		Storage: [3][3]int{
+			{8, 18, 32},
+			{10, 24, 38},
+			{12, 28, 46},
+		},
 	},
 	3: {
 		Lv1Name:     "StorageU1",
@@ -123,7 +157,11 @@ var Rooms = map[Room]RoomStat{
 		CostAdd:     25,
 		CostLv2:     750,
 		CostLv3:     2250,
-		Storage:     10,
+		Storage: [3][3]int{
+			{10, 20, 30},
+			{15, 30, 45},
+			{20, 40, 60},
+		},
 	},
 	// food production
 	4: {
@@ -135,9 +173,17 @@ var Rooms = map[Room]RoomStat{
 		CostAdd:  25,
 		CostLv2:  250,
 		CostLv3:  750,
-		Yield:    8,
-		Storage:  50,
-		Tier:     1,
+		Yield: [3][3]int{
+			{8, 18, 30},
+			{10, 22, 36},
+			{12, 26, 42},
+		},
+		Storage: [3][3]int{
+			{50, 100, 150},
+			{75, 150, 225},
+			{100, 200, 300},
+		},
+		Tier: 1,
 	},
 	5: {
 		Lv1Name:  "Food2U1",
@@ -148,9 +194,18 @@ var Rooms = map[Room]RoomStat{
 		CostAdd:  300,
 		CostLv2:  3000,
 		CostLv3:  9000,
-		Yield:    10,
-		Storage:  60,
-		Tier:     2,
+		Yield: [3][3]int{
+			{10, 23, 36},
+			{13, 29, 45},
+			{16, 35, 54},
+		},
+		Storage: [3][3]int{
+			{60, 120, 180},
+			{90, 180, 270},
+			{120, 240, 360},
+		},
+		Tier:        2,
+		MinDwellers: 70,
 	},
 	// power production
 	6: {
@@ -162,10 +217,17 @@ var Rooms = map[Room]RoomStat{
 		CostAdd:  25,
 		CostLv2:  250,
 		CostLv3:  750,
-		Yield:    10,
-		Storage:  75,
-		Tier:     1,
-		Bonus:    4,
+		Yield: [3][3]int{
+			{14, 30, 44},
+			{17, 36, 55},
+			{20, 42, 66},
+		},
+		Storage: [3][3]int{
+			{75, 150, 225},
+			{112, 224, 336},
+			{150, 300, 450},
+		},
+		Tier: 1,
 	},
 	7: {
 		Lv1Name:  "Power2U1",
@@ -176,9 +238,107 @@ var Rooms = map[Room]RoomStat{
 		CostAdd:  300,
 		CostLv2:  3000,
 		CostLv3:  9000,
-		Yield:    16,
-		Storage:  200,
-		Tier:     2,
-		Bonus:    4,
+		Yield: [3][3]int{
+			{20, 44, 66},
+			{24, 55, 77},
+			{28, 66, 88},
+		},
+		Storage: [3][3]int{
+			{200, 400, 600},
+			{300, 600, 900},
+			{400, 800, 1200},
+		},
+		Tier:        2,
+		MinDwellers: 60,
 	},
+	// water production
+	8: {
+		Lv1Name:  "Water1U1",
+		Lv2Name:  "Water1U2",
+		Lv3Name:  "Water1U3",
+		Category: "Water",
+		CostBase: 100,
+		CostAdd:  25,
+		CostLv2:  250,
+		CostLv3:  750,
+		Yield: [3][3]int{
+			{8, 18, 30},
+			{10, 22, 36},
+			{12, 26, 42},
+		},
+		Storage: [3][3]int{
+			{8, 18, 32},
+			{10, 24, 38},
+			{12, 28, 46},
+		},
+		Tier: 1,
+	},
+	9: {
+		Lv1Name:  "Water2U1",
+		Lv2Name:  "Water2U2",
+		Lv3Name:  "Water2U3",
+		Category: "Water",
+		CostBase: 1200,
+		CostAdd:  300,
+		CostLv2:  3000,
+		CostLv3:  9000,
+		Yield: [3][3]int{
+			{10, 23, 36},
+			{13, 29, 45},
+			{16, 35, 54},
+		},
+		Storage: [3][3]int{
+			{50, 100, 150},
+			{75, 150, 225},
+			{100, 200, 300},
+		},
+		Tier:        2,
+		MinDwellers: 80,
+	},
+	// medical
+	10: {
+		Lv1Name:  "Health1U1",
+		Lv2Name:  "Health1U2",
+		Lv3Name:  "Health1U3",
+		Category: "Health",
+		CostBase: 400,
+		CostAdd:  100,
+		CostLv2:  1000,
+		CostLv3:  3000,
+		Yield: [3][3]int{
+			{8, 18, 32},
+			{10, 24, 38},
+			{12, 28, 46},
+		},
+		Storage: [3][3]int{
+			{60, 120, 180},
+			{90, 180, 270},
+			{120, 240, 360},
+		},
+		Tier:        1,
+		MinDwellers: 14,
+	},
+	11: {
+		Lv1Name:  "Radiation1U1",
+		Lv2Name:  "Radiation1U2",
+		Lv3Name:  "Radiation1U3",
+		Category: "Radiation",
+		CostBase: 400,
+		CostAdd:  100,
+		CostLv2:  1000,
+		CostLv3:  3000,
+		Yield: [3][3]int{
+			{8, 18, 32},
+			{10, 24, 38},
+			{12, 28, 46},
+		},
+		Storage: [3][3]int{
+			{8, 18, 32},
+			{10, 24, 38},
+			{12, 28, 46},
+		},
+		Tier:        1,
+		MinDwellers: 16,
+	},
+	//
 }
