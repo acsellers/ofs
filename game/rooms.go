@@ -117,11 +117,27 @@ func (rs RoomStat) Production(level1, level2, size int) int {
 }
 
 func (rs RoomStat) Upgrade1Cost(level1, size int) int {
-	return rs.Upgrade1Price[level1]
+	switch size {
+	case 1:
+		return rs.Upgrade1Price[level1-1]
+	case 2:
+		return rs.Upgrade1Price[level1-1] + rs.Upgrade1Price[level1-1]/2
+	case 3:
+		return 2 * rs.Upgrade1Price[level1-1]
+	}
+	return 0
 }
 
 func (rs RoomStat) Upgrade2Cost(level2, size int) int {
-	return rs.Upgrade2Price[level2]
+	switch size {
+	case 1:
+		return rs.Upgrade2Price[level2-1]
+	case 2:
+		return rs.Upgrade2Price[level2-1] + rs.Upgrade2Price[level2-1]/2
+	case 3:
+		return 2 * rs.Upgrade2Price[level2-1]
+	}
+	return 0
 }
 
 func RoomByCode(code string) (Room, RoomStat) {
@@ -148,12 +164,12 @@ var Rooms = map[Room]RoomStat{
 
 	// food production
 	4: {
-		Code:     "Food1",
-		Category: "Production",
-		CostBase: 100,
-		CostAdd:  25,
-		CostLv2:  250,
-		CostLv3:  750,
+		Code:          "Food1",
+		Category:      "Production",
+		CostBase:      100,
+		CostAdd:       25,
+		Upgrade1Price: [2]int{200, 600},
+		Upgrade2Price: [2]int{100, 400},
 		Yield: [3][3]int{
 			{8, 18, 30},
 			{10, 22, 36},
@@ -167,12 +183,15 @@ var Rooms = map[Room]RoomStat{
 		Tier: 1,
 	},
 	5: {
-		Code:     "Food2",
-		Category: "Production",
-		CostBase: 1200,
-		CostAdd:  300,
-		CostLv2:  3000,
-		CostLv3:  9000,
+		Code:          "Food2",
+		Category:      "Production",
+		CostBase:      1200,
+		CostAdd:       300,
+		Upgrade1Price: [2]int{2000, 6000},
+		Upgrade2Price: [2]int{1000, 4000},
+
+		CostLv2: 3000,
+		CostLv3: 9000,
 		Yield: [3][3]int{
 			{10, 23, 36},
 			{13, 29, 45},
@@ -250,12 +269,12 @@ var Rooms = map[Room]RoomStat{
 	},
 	// power production
 	6: {
-		Code:     "Power1",
-		Category: "Production",
-		CostBase: 100,
-		CostAdd:  25,
-		CostLv2:  250,
-		CostLv3:  750,
+		Code:          "Power1",
+		Category:      "Production",
+		CostBase:      100,
+		CostAdd:       25,
+		Upgrade1Price: [2]int{160, 500},
+		Upgrade2Price: [2]int{160, 500},
 		Yield: [3][3]int{
 			{14, 30, 44},
 			{17, 36, 55},
@@ -269,12 +288,12 @@ var Rooms = map[Room]RoomStat{
 		Tier: 1,
 	},
 	7: {
-		Code:     "Power2",
-		Category: "Production",
-		CostBase: 1200,
-		CostAdd:  300,
-		CostLv2:  3000,
-		CostLv3:  9000,
+		Code:          "Power2",
+		Category:      "Production",
+		CostBase:      1200,
+		CostAdd:       300,
+		Upgrade1Price: [2]int{1600, 5000},
+		Upgrade2Price: [2]int{1600, 5000},
 		Yield: [3][3]int{
 			{20, 44, 66},
 			{24, 55, 77},
@@ -295,10 +314,8 @@ var Rooms = map[Room]RoomStat{
 		Category:      "Storage",
 		CostBase:      100,
 		CostAdd:       25,
-		Upgrade1Price: [2]int{1, 2},
-		Upgrade2Price: [2]int{1, 2},
-		CostLv2:       150,
-		CostLv3:       750,
+		Upgrade1Price: [2]int{250, 750},
+		Upgrade2Price: [2]int{2000, 6000},
 		Storage: [3][3]int{
 			{8, 18, 32},
 			{10, 24, 38},
@@ -306,13 +323,14 @@ var Rooms = map[Room]RoomStat{
 		},
 	},
 	3: {
-		Code:        "Warehouse",
-		Category:    "Storage",
-		MinDwellers: 12,
-		CostBase:    100,
-		CostAdd:     50,
-		CostLv2:     750,
-		CostLv3:     2250,
+		Code:          "Warehouse",
+		Category:      "Storage",
+		MinDwellers:   12,
+		CostBase:      100,
+		CostAdd:       50,
+		Upgrade1Price: [2]int{750, 2250},
+		Upgrade2Price: [2]int{1000, 4000},
+
 		Storage: [3][3]int{
 			{10, 20, 30},
 			{15, 30, 45},
