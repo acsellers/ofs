@@ -12,12 +12,3 @@ func TestVaultRouting(t *testing.T) {
 		t.Fatal("No Path?")
 	}
 }
-
-func TestRoomSprite(t *testing.T) {
-	v := NewVault()
-	r := v.PlaceRoom(10, 0, 4)
-	sp := v.Rooms[r].Sprite()
-	if sp != "food1u1x3" {
-		t.Fatal("Expected: food1u1x3, Found:", sp)
-	}
-}

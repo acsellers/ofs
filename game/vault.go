@@ -33,24 +33,20 @@ type RoomInstance struct {
 
 func (ri RoomInstance) Sprite() string {
 	r := Rooms[ri.Type]
-	var name string
-	switch ri.Upgrade1 {
-	case 1:
-		name = r.Lv1Name
-	case 2:
-		name = r.Lv2Name
-	case 3:
-		name = r.Lv3Name
-	}
-	name = fmt.Sprintf("%sx%d", name, ri.Size)
-
-	return strings.ToLower(
+	name := strings.ToLower(
 		strings.TrimFunc(
-			name,
+			r.Code,
 			func(r rune) bool {
 				return !(unicode.IsLetter(r) || unicode.IsDigit(r))
 			},
 		),
+	)
+
+	return fmt.Sprintf(
+		"%s/level_%d/size_%d/sprite.png",
+		name,
+		ri.Upgrade1,
+		ri.Size,
 	)
 }
 
