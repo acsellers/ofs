@@ -145,7 +145,7 @@ func TestRoomCapacity(t *testing.T) {
 	}
 }
 
-func TestRoomCost(t *testing.T) {
+func TestRoomUpgradeCost(t *testing.T) {
 	testRooms := []struct {
 		ID        Room
 		Level     int
