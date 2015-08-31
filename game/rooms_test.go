@@ -380,8 +380,28 @@ func TestRoomProduction(t *testing.T) {
 		{7, 3, 1, 28, Power},
 		{7, 3, 2, 66, Power},
 		{7, 3, 3, 88, Power},
+
 		// health
+		{10, 1, 1, 3, Health},
+		{10, 1, 2, 6, Health},
+		{10, 1, 3, 9, Health},
+		{10, 2, 1, 4, Health},
+		{10, 2, 2, 8, Health},
+		{10, 2, 3, 12, Health},
+		{10, 3, 1, 6, Health},
+		{10, 3, 2, 12, Health},
+		{10, 3, 3, 18, Health},
+
 		// radiation
+		{11, 1, 1, 3, Radiation},
+		{11, 1, 2, 6, Radiation},
+		{11, 1, 3, 9, Radiation},
+		{11, 2, 1, 4, Radiation},
+		{11, 2, 2, 8, Radiation},
+		{11, 2, 3, 12, Radiation},
+		{11, 3, 1, 6, Radiation},
+		{11, 3, 2, 12, Radiation},
+		{11, 3, 3, 18, Radiation},
 	}
 
 	for _, test := range testRooms {
