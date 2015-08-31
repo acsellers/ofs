@@ -207,12 +207,12 @@ var Rooms = map[Room]RoomStat{
 	},
 	// water production
 	8: {
-		Code:     "Water1",
-		Category: "Production",
-		CostBase: 100,
-		CostAdd:  25,
-		CostLv2:  250,
-		CostLv3:  750,
+		Code:          "Water1",
+		Category:      "Production",
+		CostBase:      100,
+		CostAdd:       25,
+		Upgrade1Price: [2]int{200, 600},
+		Upgrade2Price: [2]int{100, 400},
 		Yield: [3][3]int{
 			{8, 18, 30},
 			{10, 22, 36},
@@ -226,12 +226,12 @@ var Rooms = map[Room]RoomStat{
 		Tier: 1,
 	},
 	9: {
-		Code:     "Water2",
-		Category: "Production",
-		CostBase: 1200,
-		CostAdd:  300,
-		CostLv2:  3000,
-		CostLv3:  9000,
+		Code:          "Water2",
+		Category:      "Production",
+		CostBase:      1200,
+		CostAdd:       300,
+		Upgrade1Price: [2]int{2000, 6000},
+		Upgrade2Price: [2]int{1000, 4000},
 		Yield: [3][3]int{
 			{10, 23, 36},
 			{13, 29, 45},
@@ -254,8 +254,8 @@ var Rooms = map[Room]RoomStat{
 		Tier:        1,
 		MinDwellers: 75,
 
-		CostLv2: 4000,
-		CostLv3: 10000,
+		Upgrade1Price: [2]int{3000, 9000},
+		Upgrade2Price: [2]int{2000, 4000},
 		Yield: [3][3]int{
 			{8, 18, 30},
 			{10, 22, 36},
@@ -345,8 +345,9 @@ var Rooms = map[Room]RoomStat{
 		CostAdd:     100,
 		Tier:        1,
 		MinDwellers: 20,
-		CostLv2:     1000,
-		CostLv3:     3000,
+
+		Upgrade1Price: [2]int{1000, 3000},
+		Upgrade2Price: [2]int{500, 1500},
 		Yield: [3][3]int{
 			{3, 6, 9},
 			{4, 8, 12},
@@ -365,8 +366,9 @@ var Rooms = map[Room]RoomStat{
 		CostAdd:     100,
 		Tier:        1,
 		MinDwellers: 20,
-		CostLv2:     1000,
-		CostLv3:     3000,
+
+		Upgrade1Price: [2]int{1000, 3000},
+		Upgrade2Price: [2]int{500, 1500},
 		Yield: [3][3]int{
 			{3, 6, 9},
 			{4, 8, 12},
@@ -381,14 +383,16 @@ var Rooms = map[Room]RoomStat{
 
 	// service rooms
 	13: {
-		Code:        "Repair",
-		Category:    "Misc",
-		CostBase:    5000,
-		CostAdd:     1000,
-		CostLv2:     4000,
-		CostLv3:     10000,
-		Tier:        1,
-		MinDwellers: 30,
+		Code:          "Repair",
+		Category:      "Misc",
+		CostBase:      5000,
+		CostAdd:       1000,
+		Upgrade1Price: [2]int{},
+		Upgrade2Price: [2]int{},
+		CostLv2:       4000,
+		CostLv3:       10000,
+		Tier:          1,
+		MinDwellers:   30,
 	},
 	14: {
 		Code:     "Radio",
