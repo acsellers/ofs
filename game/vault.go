@@ -20,19 +20,21 @@ type Vault struct {
 }
 
 type RoomID int
+
 type RoomInstance struct {
-	ID           RoomID
-	Type         Room
-	Size         int
-	UpgradeLevel int
-	Row, Col     int
-	Connections  []RoomConnection
+	ID          RoomID
+	Type        Room
+	Size        int
+	Upgrade1    int
+	Upgrade2    int
+	Row, Col    int
+	Connections []RoomConnection
 }
 
 func (ri RoomInstance) Sprite() string {
 	r := Rooms[ri.Type]
 	var name string
-	switch ri.UpgradeLevel {
+	switch ri.Upgrade1 {
 	case 1:
 		name = r.Lv1Name
 	case 2:
@@ -50,7 +52,6 @@ func (ri RoomInstance) Sprite() string {
 			},
 		),
 	)
-
 }
 
 type RoomConnection struct {
@@ -86,18 +87,20 @@ func (v *Vault) PlaceRoom(col, row int, r Room) RoomID {
 	}
 
 	ri := RoomInstance{
-		ID:           v.next,
-		Type:         r,
-		Size:         3,
-		UpgradeLevel: 1,
-		Col:          col,
-		Row:          row,
+		ID:       v.next,
+		Type:     r,
+		Size:     3,
+		Upgrade1: 1,
+		Upgrade2: 1,
+		Col:      col,
+		Row:      row,
 	}
 	v.next += 1
 	// Elevator sizing
 	if r == 1 {
 		ri.Size = 1
-		ri.UpgradeLevel = 0
+		ri.Upgrade1 = 0
+		ri.Upgrade2 = 0
 
 		// look for elevator connections
 		for i := 0; i < 40; i++ {
