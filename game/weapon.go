@@ -9,6 +9,7 @@ import (
 type Weapon int
 
 type WeaponStat struct {
+	ID     ItemID
 	Name   string
 	Level  int
 	Parent string
@@ -42,6 +43,13 @@ func (ws WeaponStat) DamageRange() string {
 		return fmt.Sprint(ws.DamageMax)
 	}
 	return fmt.Sprintf("%d-%d", ws.DamageMin, ws.DamageMax)
+}
+
+func init() {
+	for k, w := range Weapons {
+		w.ID = ItemID(int(k) + 1000)
+		Weapons[k] = w
+	}
 }
 
 var Weapons = map[Weapon]WeaponStat{

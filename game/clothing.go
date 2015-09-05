@@ -3,6 +3,7 @@ package game
 type Clothing int
 
 type ClothingStat struct {
+	ID   ItemID
 	Name string
 	Tier int
 	Sex
@@ -17,6 +18,13 @@ const (
 	MaleOnly
 	FemaleOnly
 )
+
+func init() {
+	for k, c := range Clothes {
+		c.ID = ItemID(k)
+		Clothes[k] = c
+	}
+}
 
 var Clothes = map[Clothing]ClothingStat{
 	// baseline
