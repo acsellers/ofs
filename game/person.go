@@ -5,8 +5,10 @@ import (
 	"time"
 )
 
+type PersonID int
+
 type Person struct {
-	ID    int
+	ID    PersonID
 	Name  string
 	Level int
 	Mood  int

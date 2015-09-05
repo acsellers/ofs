@@ -43,11 +43,17 @@ func (ri RoomInstance) Sprite() string {
 	)
 
 	return fmt.Sprintf(
-		"%s/level_%d/size_%d/sprite.png",
+		"rooms/%s/level_%d/size_%d/sprite.png",
 		name,
 		ri.Upgrade1,
 		ri.Size,
 	)
+}
+
+func (ri RoomInstance) Location(offsetx, offsety float32) (float32, float32) {
+	x := float32(ri.Col*40) + offsetx
+	y := float32(ri.Row*80) + offsety
+	return x, y
 }
 
 type RoomConnection struct {
@@ -60,15 +66,17 @@ func NewVault() Vault {
 	v := Vault{
 		Rooms: map[RoomID]RoomInstance{
 			1: RoomInstance{
-				ID:   1,
-				Type: -1,
-				Size: 9,
+				ID:       1,
+				Type:     16,
+				Size:     9,
+				Upgrade1: 1,
+				Upgrade2: 1,
 			},
 		},
 		next: 2,
 	}
 	// mark vault door on map
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 9; i++ {
 		v.RoomMap[0][i] = 1
 	}
 	return v
@@ -184,9 +192,7 @@ func (v Vault) Route(from, to RoomID) []RoomID {
 	s := &searchVault{to, from, &v, from}
 	path, _, err := astar.Search(s)
 	if err != nil {
-		for _, row := range v.RoomMap {
-			fmt.Println(row)
-		}
+		v.PrintVault()
 		log.Fatal("Path Search Error", err)
 	}
 	rooms := []RoomID{}
@@ -194,6 +200,12 @@ func (v Vault) Route(from, to RoomID) []RoomID {
 		rooms = append(rooms, it.(RoomID))
 	}
 	return rooms
+}
+
+func (v Vault) PrintVault() {
+	for _, row := range v.RoomMap {
+		fmt.Println(row)
+	}
 }
 
 type searchVault struct {
