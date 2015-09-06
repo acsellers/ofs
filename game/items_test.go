@@ -16,3 +16,20 @@ func TestItemIds(t *testing.T) {
 	}
 
 }
+
+func TestClothesBalance(t *testing.T) {
+	for _, c := range Clothes {
+		capsum := c.Stats.Charm +
+			c.Stats.Awareness +
+			c.Stats.Power +
+			c.Stats.Success +
+			c.Stats.Tenacity +
+			c.Stats.Outgoing +
+			c.Stats.Nimble +
+			c.Stats.Erudite
+
+		if capsum != c.Tier*3 {
+			t.Fatalf("Bad stats for clothing %s: %d", c.Name, capsum)
+		}
+	}
+}

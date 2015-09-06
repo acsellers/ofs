@@ -46,13 +46,16 @@ type Person struct {
 }
 
 type SPECIAL struct {
-	Strength     int
-	Perception   int
-	Endurance    int
-	Charisma     int
-	Intelligence int
-	Agility      int
-	Luck         int
+	Charm     int // charisma
+	Awareness int // perception
+	Power     int // strength
+	Success   int // luck
+	Tenacity  int // endurance
+	Outgoing  int // social
+	Nimble    int // agility
+	Erudite   int // intelligence
+
+	Luck int
 }
 
 func (p *Person) Damage(d int) {
