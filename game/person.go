@@ -5,6 +5,30 @@ import (
 	"time"
 )
 
+type Job int
+
+const (
+	Break Job = iota
+	Exploring
+	Returning
+	Waiting
+	Rummaging
+	Entrance
+	Power
+	Water
+	Food
+	Meal
+
+	TrainingCharm
+	TrainingAwareness
+	TrainingPower
+	TrainingSuccess
+	TrainingTenacity
+	// TrainingOutgoing cannot train, born with it
+	TrainingNimble
+	TrainingErudite
+)
+
 type PersonID int
 
 type Person struct {
@@ -13,7 +37,8 @@ type Person struct {
 	// 0 to 60, hit cap at 120,000 total acquired skill points
 	Level int
 	// 0 to 100
-	Mood int
+	Mood       int
+	CurrentJob Job
 
 	// Cached Attributes
 	TotalHP    int

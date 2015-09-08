@@ -281,6 +281,7 @@ const (
 	HP
 	Mood
 	DPS
+	CurrentJob
 
 	// special
 	StatCharm
@@ -325,6 +326,13 @@ func (dr DwellerRestriction) Matches(p Person) bool {
 			return p.IsDead == dr.BoolValue
 		case Neq:
 			return p.IsDead != dr.BoolValue
+		}
+	case CurrentJob:
+		switch dr.Op {
+		case Eq:
+			return p.CurrentJob == Job(dr.IntValue)
+		case Neq:
+			return p.CurrentJob != Job(dr.IntValue)
 		}
 	case Level:
 		return dr.MatchStat(p.Level)
@@ -422,6 +430,8 @@ func (dl DwellerList) Less(i, j int) bool {
 		return di.Level > dj.Level
 	case HP:
 		return di.CurrentHP*100/di.TotalHP > dj.CurrentHP*100/dj.TotalHP
+	case CurrentJob:
+		return di.CurrentJob > dj.CurrentJob
 	case StatCharm:
 		return di.Stats.Charm > dj.Stats.Charm
 	case StatAwareness:
