@@ -8,10 +8,12 @@ import (
 type PersonID int
 
 type Person struct {
-	ID    PersonID
-	Name  string
+	ID   PersonID
+	Name string
+	// 0 to 60, hit cap at 120,000 total acquired skill points
 	Level int
-	Mood  int
+	// 0 to 100
+	Mood int
 
 	// Cached Attributes
 	TotalHP    int
@@ -20,6 +22,7 @@ type Person struct {
 
 	// HP things
 	IsDead        bool
+	Expiration    time.Time
 	DamageAmount  int
 	RadiateAmount int
 	HealthLevel   int
@@ -102,4 +105,8 @@ func (p *Person) applyDamage() {
 		return
 	}
 	p.CurrentHP = p.TotalHP - p.DamageAmount - p.RadiateAmount
+}
+
+func (p Person) SimpleDPS() int {
+	return 0
 }

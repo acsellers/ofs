@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 	"unicode"
 
 	"github.com/pietv/astar"
@@ -11,12 +12,23 @@ import (
 
 type Vault struct {
 	Rooms map[RoomID]RoomInstance
-	next  RoomID
 	// a RoomID usually spans more than 1 block, excepting elevators
 	// not actually a map, but a table
-	RoomMap [40][50]RoomID
+	RoomMap [60][50]RoomID
+	// The next RoomID for the vault
+	RoomCnt int
 	// [row][col], first 10 columns on row 0 are taken up by door and wasteland
 	// normal room costs 3 columns, elevator takes 1 column
+	Dwellers map[PersonID]Person
+	// The next person ID for the vault
+	DwellerCnt int
+	// Vault time passes differently from normal time
+	// start at january 1, 2177
+	Time time.Time
+	// places around the vault to discover
+	Landmarks LandmarkList
+	// factions to befriend and piss off
+	Factions map[FactionID]Faction
 }
 
 type RoomID int
@@ -64,6 +76,12 @@ type RoomConnection struct {
 
 func NewVault() Vault {
 	v := Vault{
+		// guess when this is
+		Time:     time.Date(2277, time.August, 17, 9, 04, 0, 0, time.UTC),
+		Dwellers: make(map[PersonID]Person),
+
+		// add vault door
+		RoomCnt: 2,
 		Rooms: map[RoomID]RoomInstance{
 			1: RoomInstance{
 				ID:       1,
@@ -73,7 +91,6 @@ func NewVault() Vault {
 				Upgrade2: 1,
 			},
 		},
-		next: 2,
 	}
 	// mark vault door on map
 	for i := 0; i < 9; i++ {
@@ -91,7 +108,7 @@ func (v *Vault) PlaceRoom(col, row int, r Room) RoomID {
 	}
 
 	ri := RoomInstance{
-		ID:       v.next,
+		ID:       RoomID(v.RoomCnt),
 		Type:     r,
 		Size:     3,
 		Upgrade1: 1,
@@ -99,7 +116,7 @@ func (v *Vault) PlaceRoom(col, row int, r Room) RoomID {
 		Col:      col,
 		Row:      row,
 	}
-	v.next += 1
+	v.RoomCnt++
 	// Elevator sizing
 	if r == 1 {
 		ri.Size = 1
@@ -253,4 +270,195 @@ func (sv searchVault) Estimate(given interface{}) float64 {
 	}
 
 	return rows + cols
+}
+
+type DwellerFilter int
+
+const (
+	// Sort and Restriction
+	Name DwellerFilter = iota
+	Level
+	HP
+	Mood
+	DPS
+
+	// special
+	StatCharm
+	StatAwareness
+	StatPower
+	StatSuccess
+	StatTenacity
+	StatOutgoing
+	StatNimble
+	StatErudite
+
+	// Restriction only
+	Dead
+)
+
+type Operation int
+
+const (
+	Eq Operation = iota
+	Neq
+	Gt
+	Lt
+)
+
+type DwellerRestriction struct {
+	Filter    DwellerFilter
+	Op        Operation
+	BoolValue bool
+	StrValue  string
+	IntValue  int
+}
+
+func (dr DwellerRestriction) Matches(p Person) bool {
+	switch dr.Filter {
+	case Name:
+		return dr.MatchName(p)
+	case HP:
+		return dr.MatchHP(p)
+	case Dead:
+		switch dr.Op {
+		case Eq:
+			return p.IsDead == dr.BoolValue
+		case Neq:
+			return p.IsDead != dr.BoolValue
+		}
+	case Level:
+		return dr.MatchStat(p.Level)
+	case Mood:
+		return dr.MatchStat(p.Mood)
+	case DPS:
+		return dr.MatchStat(p.SimpleDPS())
+	case StatCharm:
+		return dr.MatchStat(p.Stats.Charm)
+	case StatAwareness:
+		return dr.MatchStat(p.Stats.Awareness)
+	case StatPower:
+		return dr.MatchStat(p.Stats.Power)
+	case StatSuccess:
+		return dr.MatchStat(p.Stats.Success)
+	case StatTenacity:
+		return dr.MatchStat(p.Stats.Tenacity)
+	case StatOutgoing:
+		return dr.MatchStat(p.Stats.Outgoing)
+	case StatNimble:
+		return dr.MatchStat(p.Stats.Nimble)
+	case StatErudite:
+		return dr.MatchStat(p.Stats.Erudite)
+
+	}
+	return false
+}
+
+func (dr DwellerRestriction) MatchStat(v int) bool {
+	switch dr.Op {
+	case Gt:
+		return dr.IntValue > v
+	case Lt:
+		return dr.IntValue < v
+	case Eq:
+		return dr.IntValue == v
+	case Neq:
+		return dr.IntValue != v
+	}
+	return false
+}
+
+func (dr DwellerRestriction) MatchName(p Person) bool {
+	switch dr.Op {
+	case Gt:
+		return strings.ToLower(p.Name) > strings.ToLower(dr.StrValue)
+	case Lt:
+		return strings.ToLower(p.Name) < strings.ToLower(dr.StrValue)
+	case Eq:
+		return strings.HasPrefix(strings.ToLower(p.Name), strings.ToLower(dr.StrValue))
+	case Neq:
+		return strings.ToLower(p.Name) != strings.ToLower(dr.StrValue)
+	}
+	return false
+}
+
+// MatchHP matches against the integer percenage of HP remaining (0-100)
+func (dr DwellerRestriction) MatchHP(p Person) bool {
+	switch dr.Op {
+	case Gt:
+		return p.CurrentHP*100/p.TotalHP > dr.IntValue
+	case Eq:
+		return p.CurrentHP*100/p.TotalHP == dr.IntValue
+	case Neq:
+		return p.CurrentHP*100/p.TotalHP != dr.IntValue
+	case Lt:
+		return p.CurrentHP*100/p.TotalHP < dr.IntValue
+	}
+	return false
+}
+
+type DwellerList struct {
+	Dwellers  []Person
+	SortKey   DwellerFilter
+	Ascending bool
+}
+
+func (dl DwellerList) Len() int {
+	return len(dl.Dwellers)
+}
+
+func (dl DwellerList) Less(i, j int) bool {
+	di := dl.Dwellers[i]
+	dj := dl.Dwellers[j]
+
+	if dl.Ascending {
+		dj = dl.Dwellers[i]
+		di = dl.Dwellers[j]
+	}
+	// act like i to j is highest to lowest
+	switch dl.SortKey {
+	case Name:
+		return di.Name > dj.Name
+	case Level:
+		return di.Level > dj.Level
+	case HP:
+		return di.CurrentHP*100/di.TotalHP > dj.CurrentHP*100/dj.TotalHP
+	case StatCharm:
+		return di.Stats.Charm > dj.Stats.Charm
+	case StatAwareness:
+		return di.Stats.Awareness > dj.Stats.Awareness
+	case StatPower:
+		return di.Stats.Power > dj.Stats.Power
+	case StatSuccess:
+		return di.Stats.Success > dj.Stats.Success
+	case StatTenacity:
+		return di.Stats.Tenacity > dj.Stats.Tenacity
+	case StatOutgoing:
+		return di.Stats.Outgoing > dj.Stats.Outgoing
+	case StatNimble:
+		return di.Stats.Nimble > dj.Stats.Nimble
+	case StatErudite:
+		return di.Stats.Erudite > dj.Stats.Erudite
+	case Mood:
+		return di.Mood > dj.Mood
+	case DPS:
+		return di.SimpleDPS() > dj.SimpleDPS()
+	}
+	return false
+}
+
+func (dl DwellerList) Swap(i, j int) {
+	dl.Dwellers[i], dl.Dwellers[j] = dl.Dwellers[j], dl.Dwellers[i]
+}
+func (v Vault) FilterDwellers(filter DwellerFilter, ascending bool, restrictions []DwellerRestriction) []Person {
+	dwellers := []Person{}
+DwellCheck:
+	for _, p := range v.Dwellers {
+		for _, r := range restrictions {
+			if !r.Matches(p) {
+				continue DwellCheck
+			}
+		}
+		dwellers = append(dwellers, p)
+	}
+	return dwellers
 }
