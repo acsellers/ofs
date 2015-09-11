@@ -14,7 +14,7 @@ type Vault struct {
 	Rooms map[RoomID]RoomInstance
 	// a RoomID usually spans more than 1 block, excepting elevators
 	// not actually a map, but a table
-	RoomMap [60][50]RoomID
+	RoomMap [50][30]RoomID
 	// The next RoomID for the vault
 	RoomCnt int
 	// [row][col], first 10 columns on row 0 are taken up by door and wasteland

@@ -14,10 +14,10 @@ const (
 	Waiting
 	Rummaging
 	Entrance
-	Power
-	Water
-	Food
-	Meal
+	JobPower
+	JobWater
+	JobFood
+	JobMeal
 
 	TrainingCharm
 	TrainingAwareness

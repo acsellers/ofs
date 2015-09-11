@@ -1,0 +1,201 @@
+package main
+
+import (
+	"log"
+	"runtime"
+	"time"
+
+	"bitbucket.org/szabba/gameyard/plane"
+	"bitbucket.org/szabba/gameyard/render"
+
+	_ "image/png"
+
+	"github.com/acsellers/ofs/game"
+	"github.com/go-gl/gl/v2.1/gl"
+	"github.com/go-gl/glfw/v3.1/glfw"
+)
+
+var (
+	v        game.Vault
+	width    = 800
+	height   = 600
+	sprites  []*render.Sprite
+	frameNos []int
+	sys      *render.System
+)
+
+func main() {
+	runtime.LockOSThread()
+	if err := glfw.Init(); err != nil {
+		log.Fatal("Couldn't initialize GLFW:", err)
+	}
+	defer glfw.Terminate()
+
+	glfw.WindowHint(glfw.ContextVersionMajor, 2)
+	glfw.WindowHint(glfw.ContextVersionMajor, 1)
+
+	window, err := glfw.CreateWindow(width, height, "render", nil, nil)
+	if err != nil {
+		log.Fatal("Create Window:", err)
+	}
+	window.MakeContextCurrent()
+	// window.SetKeyCallback(keyCallback)
+
+	if err := gl.Init(); err != nil {
+		log.Fatal("GL Init:", err)
+	}
+
+	v = game.NewVault()
+	v.PlaceRoom(9, 0, 1)
+	v.PlaceRoom(9, 1, 1)
+	v.PlaceRoom(10, 1, 2)
+
+	tex := GetTexture("debug/background.png")
+	tex.Pixelize()
+
+	spmap := render.NewSpriteMap(tex)
+	spmap.AddFrame("First", 0, 0, 0, 0, tex.Width, tex.Height)
+
+	demo := spmap.Sprite(0)
+	at := plane.Vector{}
+	demo.SetAt(at)
+
+	layers := render.NewLayers("only")
+	l1 := layers.LayerNo("only")
+	layers.AddSprite(l1, demo)
+
+	sys = render.NewSystem((*Dims)(window))
+	sys.SetSequence(layers)
+
+	for !window.ShouldClose() {
+		sys.Render()
+		window.SwapBuffers()
+		glfw.PollEvents()
+		time.Sleep(50 * time.Microsecond)
+	}
+}
+
+type Dims glfw.Window
+
+func (d *Dims) WidthAndHeight() (int32, int32) {
+	w, h := (*glfw.Window)(d).GetFramebufferSize()
+	return int32(w), int32(h)
+}
+
+func GetTexture(name string) *render.Texture {
+	tex, err := render.NewTextureFromFile("assets/" + name)
+	if err != nil {
+		log.Fatalf("Couldn't load %s, got error: %s", name, err.Error())
+	}
+	return tex
+}
+
+/*
+	eng   = glsprite.Engine()
+	scene *sprite.Node
+	start = time.Now()
+	dbg   = flag.Bool("debug", false, "Turn on debug mode")
+)
+
+func main() {
+	flag.Parse()
+
+	// setup transparency for sprites
+	gl.Disable(gl.DEPTH_TEST)
+	gl.Enable(gl.BLEND)
+	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+
+	app.Main(func(a app.App) {
+		var sz size.Event
+		for e := range a.Events() {
+			switch e := app.Filter(e).(type) {
+			case size.Event:
+				sz = e
+			case paint.Event:
+				onPaint(sz)
+				a.EndPaint(e)
+			}
+		}
+	})
+}
+
+func onPaint(e size.Event) {
+	if scene == nil {
+		loadScene()
+	}
+	gl.ClearColor(1, 1, 1, 1)
+	gl.Clear(gl.COLOR_BUFFER_BIT)
+	now := clock.Time(time.Since(start) * 60 / time.Second)
+	eng.Render(scene, now, e)
+	if *dbg {
+		debug.DrawFPS(e)
+	}
+}
+
+func newNode() *sprite.Node {
+	n := &sprite.Node{}
+	eng.Register(n)
+	scene.AppendChild(n)
+	return n
+}
+
+func loadScene() {
+	v.PrintVault()
+	scene = &sprite.Node{}
+	eng.Register(scene)
+	eng.SetTransform(scene, f32.Affine{
+		{1, 0, 0},
+		{0, 1, 0},
+	})
+
+	n := newNode()
+	eng.SetSubTex(n, getTexture("debug/background.png"))
+	eng.SetTransform(n, f32.Affine{
+		{400, 0, 0},
+		{0, 400, 0},
+	})
+
+	n = newNode()
+	eng.SetSubTex(n, getTexture("gophers/demo/cowboy.png"))
+	eng.SetTransform(n, f32.Affine{
+		{40, 0, 40},
+		{0, 183 / 4, 40},
+	})
+
+	offset := float32(40.0)
+	for _, room := range v.Rooms {
+		n = newNode()
+		eng.SetSubTex(n, getTexture(room.Sprite()))
+		x, y := room.Location(offset, offset)
+		eng.SetTransform(n, f32.Affine{
+			{float32(room.Size) * 40, 0, x},
+			{0, 80, y},
+		})
+	}
+}
+
+var loadedTex = make(map[string]sprite.SubTex)
+
+func getTexture(name string) sprite.SubTex {
+	if t, ok := loadedTex[name]; ok {
+		return t
+	}
+
+	a, err := asset.Open(name)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer a.Close()
+
+	img, _, err := image.Decode(a)
+	if err != nil {
+		log.Fatal(err)
+	}
+	t, err := eng.LoadTexture(img)
+	if err != nil {
+		log.Fatal(err)
+	}
+	loadedTex[name] = sprite.SubTex{t, img.Bounds()}
+	return loadedTex[name]
+}
+*/
